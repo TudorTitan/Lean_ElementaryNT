@@ -1,3 +1,15 @@
+constants a b c: int
+constants  x y z m: nat
+constant modus_ponens {p q : Prop} : implies p q → p → q
+
+def cong (a:int) (b: int) (m: nat): Prop := ∃ x: int, a-b = m*x
+
+def is_prime (p:nat): Prop := ∀ x y: int, cong (x*y) 0 p → cong x 0 p ∨ cong y 0 p
+
+axiom floor (a: int) (b:int): ∃ x:int, (x*b ≤ a ∧ ∀  y: int, y*b ≤ a → y≤x)
+
+--
+
 theorem DivAlgo {q r: int} (a : int) (b : int): ∃ q r: int, a = b*q + r ∧ 0 ≤ r ∧ b > r :=
 begin 
 have Q: ∃ q r: int, a = b*q + r ∧ 0 ≤ r ∧ b > r, 
