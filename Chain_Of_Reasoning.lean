@@ -123,3 +123,29 @@ exact exists.elim (and.elim_left (and.elim_left W1))
             )
         )
 end
+
+
+--WIP
+
+
+lemma LDEcomm (a: int) (b: int) (p: int) : LDE a b p ↔ LDE b a p :=
+begin
+have H:LDE a b p ↔ LDE b a p, from sorry,
+exact H
+end
+
+theorem IntegersFormPID (a : int) (b : int): ∃ g:int, LDE a b g ∧ gcd a b g :=
+begin
+have H1: ∃ g:int, LDE a b g ∧ gcd a b g, from exists.elim (ELDE a b) 
+    (fun (p:int) (W1: (LDE a b p ∧ p > 0) ∧  (∀ q: int, LDE a b q → q ≥ p)), 
+    have H: cong a 0 p, from LDEsimp W1,
+    have W11: LDE a b p, from (and.elim_left (and.elim_left W1)),
+    have W12: LDE b a p, from iff.elim_left (LDEcomm a b p) W11,
+    have W2: p > 0, from and.elim_right (and.elim_left W1),
+    have W31: LDE a b p → LDE b a p, from iff.elim_left (LDEcomm a b p),
+    have W3: (∀ q: int, LDE b a q → q ≥ p), from iff_subst (LDEcomm a b p) (and.elim_right (and.elim_right W1)),
+    have W2: (LDE b a p ∧ p > 0) ∧  (∀ q: int, LDE b a q → q ≥ p), from iff_subst (LDEcomm a b p) W1,
+    have Hb: cong b 0 p, from LDEsimp W1,
+    )
+end
+
