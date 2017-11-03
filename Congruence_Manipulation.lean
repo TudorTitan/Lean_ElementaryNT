@@ -226,9 +226,9 @@ end
 
 --Lemma for proving that Z is a principal ideal domain later on
 
-lemma LDEsimp {a b p :int} (W1: (LDE a b p ∧ p > 0) ∧ (∀ (q: int), LDE a b q → q ≥ p)) : cong a 0 p:=
+lemma LDEsimp {a b p :int} (W1: LDE a b p ∧ p > 0 ∧ (∀ (q: int), LDE a b q → q ≥ p)) : cong a 0 p:=
 begin
-exact exists.elim (and.elim_left (and.elim_left W1))
+exact exists.elim W1.1
         (fun (x : int) (W2: ∃ y:int, a*x + b*y  = p),
             exists.elim W2
             (fun (y : int) (W3: a*x + b*y = p),
@@ -258,7 +258,7 @@ exact exists.elim (and.elim_left (and.elim_left W1))
                         have Z1: n = 0, from or.by_cases (lt_or_eq_of_le Ntest)
                         (assume H1: n > 0,
                         have C0: LDE a b n, from exists.intro (1-x*m) (exists.intro (-(y*m)) A),
-                        have C1: ∀ q: int, LDE a b q → q ≥ p, from  (and.elim_right W1),
+                        have C1: ∀ q: int, LDE a b q → q ≥ p, from  W1.2.2,
                         have C2: n ≥ p, from C1 n C0,
                         have C4: ¬ n < p, from not_lt_of_ge C2,
                         have E: n = 0, from absurd UB C4,
@@ -293,22 +293,12 @@ have H2: LDE b a p, from exists.elim (H1) (
 exact H2
 end
 
-theorem IntegersFormPID (j : int) (b : int): ∃ g:int, LDE j b g ∧ gcd j b g :=
+lemma PisGCD {j b p: int} (W2: p > 0) (W11: LDE j b p) (y: int): cong j 0 y ∧ cong b 0 y → p ≥ y :=
 begin
-have H1: ∃ g:int, LDE j b g ∧ gcd j b g, from exists.elim (ELDE j b) 
-    (fun (p:int) (W1: (LDE j b p ∧ p > 0) ∧  (∀ q: int,  LDE j b q → q ≥ p)), 
-    have Ha: cong j 0 p, from LDEsimp W1,
-    have W11: LDE j b p, from W1.1.1,
-    have W12: LDE b j p, from LDEcomm W11,
-    have W2: p > 0, from W1.1.2,
-    have W6: (∀ q: int, LDE b j q → q ≥ p), from (λ q H, (W1.2 q) (LDEcomm H)),
-    have W7: (LDE b j p ∧ p > 0) ∧  (∀ q: int, LDE b j q → q ≥ p), from ⟨⟨W12,W2⟩,W6⟩,
-    have Hb: cong b 0 p, from LDEsimp W7,
-
-    have pregoal: (∀ y:int, y > 0 ∧ cong j 0 y ∧ cong b 0 y → p ≥ y), from ∀ y:int, λ P:  (y > 0 ∧ cong j 0 y) ∧ cong b 0 y(
-        assume P: (y > 0 ∧ cong j 0 y) ∧ cong b 0 y,
-        have r: cong b 0 y, from and.elim_right P,
-        have l: cong j 0 y, from and.elim_right (and.elim_left P),
+have goal: cong j 0 y ∧ cong b 0 y → p ≥ y, from
+        (assume P: cong j 0 y ∧ cong b 0 y,
+        have r: cong b 0 y, from P.2,
+        have l: cong j 0 y, from P.1,
         have F: cong p 0 y, from exists.elim (W11) (fun (x : int) (F1: ∃ w:int, j*x + b*w  = p),
             exists.elim F1 (fun (w : int) (F2: j*x + b*w = p),
 
@@ -322,8 +312,25 @@ have H1: ∃ g:int, LDE j b g ∧ gcd j b g, from exists.elim (ELDE j b)
             c2
     )),
     have en: p ≥ y, from basicInequality F W2,
-    F),
-    have goal: gcd j b p, from and.intro (and.intro (and.intro W2 Ha) Hb) pregoal,
-    and.intro W11 goal
-    )
+    en),
+    exact goal
+end
+
+theorem IntegersFormPID (j : int) (b : int): ∃ g:int, LDE j b g ∧ gcd j b g :=
+begin
+have H1: ∃ g:int, LDE j b g ∧ gcd j b g, from exists.elim (ELDE j b) 
+    (fun (p:int) (W1: LDE j b p ∧ p > 0 ∧  (∀ q: int,  LDE j b q → q ≥ p)), 
+    have Ha: cong j 0 p, from LDEsimp W1,
+    have W11: LDE j b p, from W1.1,
+    have W12: LDE b j p, from LDEcomm W11,
+    have W2: p > 0, from W1.2.1,
+    have W6: (∀ q: int, LDE b j q → q ≥ p), from (λ q H, (W1.2.2 q) (LDEcomm H)),
+    have W7: LDE b j p ∧ p > 0 ∧  (∀ q: int, LDE b j q → q ≥ p), from ⟨W12,W2,W6⟩,
+    have Hb: cong b 0 p, from LDEsimp W7,
+
+    have pre: (∀ y:int, cong j 0 y ∧ cong b 0 y → p ≥ y), from PisGCD W2 W11,
+    have goal: gcd j b p, from ⟨ W2, Ha, Hb, pre⟩,
+    exists.intro p (and.intro W11 goal)
+    ),
+exact H1
 end
